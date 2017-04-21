@@ -1,0 +1,29 @@
+{
+  "name": "pitch-rest-service",
+  "version": "1.0.0",
+  "description": "Pitch REST Service",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Francesco Pasqua <cesconix@me.com>",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:cesconix/pitch-rest-service.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "cors": "^2.8.3",
+    "express": "^4.15.2",
+    "fb": "^2.0.0",
+    "helmet": "^3.5.0",
+    "morgan": "^1.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.2.2",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1"
+  }
+}
