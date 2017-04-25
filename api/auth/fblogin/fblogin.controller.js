@@ -1,9 +1,11 @@
 const FacebookLogin = (req, res) => {
-  res.send('serione!')
+  console.log(req.body)
+  res.send('it works')
 }
 
 module.exports = FacebookLogin
 
+// const UserModel = require('pitch-database/models').User
 // const express = require('express')
 // const config = require('../../config')
 // // const UserModel = require('../../models/user')
