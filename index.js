@@ -20,20 +20,20 @@ app.use(cors())
 
 app.use('/api', api)
 
+app.use((req, res, next) => {
+  const err = new APIError('API not found', httpStatus.NOT_FOUND)
+  return next(err)
+})
+
 app.use((err, req, res, next) => {
   if (err instanceof ev.ValidationError) {
-    const unifiedErrorMessage = err.errors.map(error => error.messages.join('. ')).join(' and ')
+    const unifiedErrorMessage = 'Validation Error: ' + err.errors.map(error => error.messages.join('. ')).join(' and ')
     const error = new APIError(unifiedErrorMessage, err.status)
     return next(error)
   } else if (!(err instanceof APIError)) {
     const apiError = new APIError(err.message, err.status)
     return next(apiError)
   }
-  return next(err)
-})
-
-app.use((req, res, next) => {
-  const err = new APIError('API not found', httpStatus.NOT_FOUND)
   return next(err)
 })
 

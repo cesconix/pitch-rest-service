@@ -1,6 +1,5 @@
 const FacebookLogin = (req, res) => {
-  console.log(req.body)
-  res.send('it works')
+  res.send(req.body)
 }
 
 module.exports = FacebookLogin
