@@ -1,62 +1,91 @@
-const FacebookLogin = (req, res) => {
-  res.send(req.body)
+const FB = require('fb')
+const Promise = require('bluebird')
+const httpStatus = require('http-status')
+const errorCode = require('../../../helpers/errorCode')
+const APIError = require('../../../helpers/APIError')
+const config = require('pitch-config')
+// const User = require('pitch-database/models').User
+
+const FIELDS = [
+  'id',
+  'link',
+  'first_name',
+  'last_name',
+  'gender',
+  'locale',
+  'email',   // permission: email
+  'birthday' // permission: user_birthday
+]
+
+function getProfile (fb) {
+  return new Promise((resolve, reject) => {
+    fb.api('/me', { fields: FIELDS }, (profile) => {
+      if (profile && profile.error) {
+        return reject(profile.error)
+      }
+
+      if (profile.hasOwnProperty('email') === false) {
+        return reject(new APIError(
+          errorCode[errorCode.FBLOGIN_MISSING_GRANT_EMAIL],
+          httpStatus.BAD_REQUEST,
+          errorCode.FBLOGIN_MISSING_GRANT_EMAIL
+        ))
+      }
+
+      if (profile.hasOwnProperty('birthday') === false) {
+        return reject(new APIError(
+          errorCode[errorCode.FBLOGIN_MISSING_GRANT_BIRTHDAY],
+          httpStatus.BAD_REQUEST,
+          errorCode.FBLOGIN_MISSING_GRANT_BIRTHDAY
+        ))
+      }
+
+      return resolve(profile)
+    })
+  })
+}
+
+function getFriends (fb) {
+  return new Promise((resolve, reject) => {
+    fb.api('/me/friends', (friends) => {
+      if (friends && friends.error) {
+        return reject(friends.error)
+      }
+
+      if (friends.hasOwnProperty('summary') === false) {
+        return reject(new APIError(
+          errorCode[errorCode.FBLOGIN_MISSING_GRANT_FRIENDS],
+          httpStatus.BAD_REQUEST,
+          errorCode.FBLOGIN_MISSING_GRANT_FRIENDS
+        ))
+      }
+
+      return resolve(friends)
+    })
+  })
+}
+
+function createUser (req, res, next) {
+  return (data) => {
+    const profile = data[0]
+    // const friends = data[1]
+    res.json(profile)
+  }
+}
+
+function FacebookLogin (req, res, next) {
+  const fb = new FB.Facebook({
+    version: config.app.facebook.version,
+    appSecret: config.app.facebook.appSecret,
+    accessToken: req.body.accessToken
+  })
+
+  const promises = [
+    getProfile(fb),
+    getFriends(fb)
+  ]
+
+  Promise.all(promises).then(createUser(req, res, next), (err) => next(err))
 }
 
 module.exports = FacebookLogin
-
-// const UserModel = require('pitch-database/models').User
-// const express = require('express')
-// const config = require('../../config')
-// // const UserModel = require('../../models/user')
-// const app = express()
-//
-// const FB = require('fb')
-//
-// const fb = new FB.Facebook({version: 'v2.8', appSecret: 'e58902af1378a9e45e033e21a4aff5f6'})
-// fb.setAccessToken('EAAaoS2a2hicBAErbpi85dFVwF6wIGx9sFIfHl7IgJQcFyQbXGvEh29ZCJ4PZBQUPwVZB8GoSk2ZAMBclttAWSJHILHAiNFXQ0Olb5eiWrxuHZBUZA0qWA2zcaFAowzbKGxvFrIlFwwY7VsKOnmAJYEtkGUAHqc40SZBJy4ZA8FBXCZA6UcNRvfw1c')
-//
-// // first_name    : profile.first_name
-// // last_name     : profile.last_name
-// // gender        : profile.gender
-// // locale        : profile.locale
-// // email         : profile.email
-// // birthday      : profile.birthday
-// // interested_in : if profile.interested_in then profile.interested_in else []
-// // location      : if profile.location and profile.location.name then profile.location.name else null
-//
-// const fields = [
-//   'first_name',
-//   'last_name',
-//   'gender',
-//   'email',
-//   'birthday',
-//   'interested_in',
-//   'location',
-//   'link'
-// ]
-//
-// // fb.api('/me', { fields }, (res) => {
-// //   if (res && res.error) {
-// //     if (res.error.code === 'ETIMEDOUT') {
-// //       console.log('request timeout')
-// //     } else {
-// //       console.log('error', res.error)
-// //     }
-// //   } else {
-// //     console.log(res)
-// //   }
-// // })
-//
-// fb.api('/me/friends', (res) => {
-//   if (res && res.error) {
-//     if (res.error.code === 'ETIMEDOUT') {
-//       console.log('request timeout')
-//     } else {
-//       console.log('error', res.error)
-//     }
-//   } else {
-//     console.log(res)
-//   }
-// })
-//
-// app.listen(config.system.services.rest.port, () => {})

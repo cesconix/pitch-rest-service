@@ -38,10 +38,14 @@ app.use((err, req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-  res.status(err.status).json({
-    status: err.status,
-    message: err.message
-  })
+  const { status, message, code } = err
+  const error = { status, message }
+
+  if (code) {
+    error.code = code
+  }
+
+  res.status(err.status).json({ error })
 })
 
 database.connect()
