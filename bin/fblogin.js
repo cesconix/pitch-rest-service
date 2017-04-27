@@ -16,7 +16,7 @@ program
           console.log(chalk.red(JSON.stringify(err)))
           return
         }
-        console.log(chalk.yellow(JSON.stringify(res.body)))
+        console.log(chalk.yellow(JSON.stringify(res.body, null, 2)))
       })
   })
   .parse(process.argv)
