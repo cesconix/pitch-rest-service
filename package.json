@@ -1,10 +1,11 @@
 {
   "name": "pitch-rest-service",
   "version": "1.0.0",
-  "description": "Pitch REST Service",
+  "description": "Pitch.im - REST Service",
   "main": "index.js",
   "scripts": {
-    "api:fblogin": "node bin/fblogin --"
+    "api:fblogin": "node bin/fblogin --",
+    "serve": "node index"
   },
   "author": "Francesco Pasqua <cesconix@me.com>",
   "license": "ISC",
@@ -13,21 +14,23 @@
     "url": "git@github.com:cesconix/pitch-rest-service.git"
   },
   "dependencies": {
+    "axios": "^0.16.1",
     "body-parser": "^1.17.1",
     "chalk": "^1.1.3",
     "commander": "^2.9.0",
     "cors": "^2.8.3",
-    "debug": "^2.6.4",
+    "debug": "^2.6.6",
     "express": "^4.15.2",
     "express-validation": "^1.0.2",
     "fb": "^2.0.0",
-    "helmet": "^3.5.0",
+    "helmet": "^3.6.0",
     "http-status": "^1.0.1",
     "joi": "^10.4.1",
+    "jsonwebtoken": "^7.4.0",
     "lodash": "^4.17.4",
     "morgan": "^1.8.1",
-    "pitch-config": "git+ssh://git@github.com/cesconix/pitch-config.git",
-    "pitch-database": "git+ssh://git@github.com/cesconix/pitch-database.git",
+    "pitch-config": "git@github.com:cesconix/pitch-config.git",
+    "pitch-database": "git@github.com:cesconix/pitch-database.git",
     "superagent": "^3.5.2"
   },
   "devDependencies": {

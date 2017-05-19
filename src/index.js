@@ -36,14 +36,11 @@ app.use((err, req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-  const { status, message, code, stack } = err
-  const error = { status, message, stack }
-
-  if (code) {
-    error.code = code
-  }
-
-  res.status(200).json({ error })
+  res.status(200).json({
+    status: err.status,
+    message: err.message,
+    stack: err.stack
+  })
 })
 
 module.exports = app

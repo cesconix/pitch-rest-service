@@ -1,6 +1,7 @@
+const _ = require('lodash')
+const axios = require('axios')
 const Promise = require('bluebird')
 const httpStatus = require('http-status')
-const errorCode = require('helpers/errorCode')
 const APIError = require('helpers/APIError')
 
 const getProfile = (fb, fields) => {
@@ -11,14 +12,18 @@ const getProfile = (fb, fields) => {
       }
 
       if (profile.hasOwnProperty('email') === false) {
-        const code = errorCode.FBLOGIN_MISSING_GRANT_EMAIL
-        const err = new APIError(errorCode[code], httpStatus.BAD_REQUEST, code)
-        return reject(err)
+        const error = new APIError(
+          'The user does not grant the "user_email" permission',
+          httpStatus.BAD_REQUEST
+        )
+        return reject(error)
       }
 
       if (profile.hasOwnProperty('birthday') === false) {
-        const code = errorCode.FBLOGIN_MISSING_GRANT_BIRTHDAY
-        const err = new APIError(errorCode[code], httpStatus.BAD_REQUEST, code)
+        const err = new APIError(
+          'The user does not grant the "user_birthday" permission',
+          httpStatus.BAD_REQUEST
+        )
         return reject(err)
       }
 
@@ -29,18 +34,32 @@ const getProfile = (fb, fields) => {
 
 const getFriends = (fb) => {
   return new Promise((resolve, reject) => {
-    fb.api('/me/friends', (friends) => {
-      if (friends && friends.error) {
-        return reject(friends.error)
+    fb.api('/me/friends?limit=1', (res) => {
+      if (res && res.error) {
+        return reject(res.error)
       }
 
-      if (friends.hasOwnProperty('summary') === false) {
-        const code = errorCode.FBLOGIN_MISSING_GRANT_FRIENDS
-        const err = new APIError(errorCode[code], httpStatus.BAD_REQUEST, code)
-        return reject(err)
+      if (res.hasOwnProperty('summary') === false) {
+        const error = new APIError(
+          'The user does not grant the "user_friends" permission',
+          httpStatus.BAD_REQUEST
+        )
+        return reject(error)
       }
 
-      return resolve(friends)
+      const totalCount = res.summary.total_count
+
+      if (res.paging && res.paging.next) {
+        return getFriendsRecursively(res.paging.next, [], (error, data) => {
+          if (error) {
+            return reject(error)
+          }
+
+          return resolve({ data: _.map(data, 'id'), totalCount })
+        })
+      }
+
+      return resolve({ data: _.map(res.data, 'id'), totalCount })
     })
   })
 }
@@ -52,9 +71,22 @@ const updateUserProfile = (facebookProfile) => {
     gender: facebookProfile.gender,
     locale: facebookProfile.locale,
     email: facebookProfile.email,
-    birthday: new Date(facebookProfile.birthday),
-    interestedIn: facebookProfile.gender === 'male' ? 'female' : 'male'
+    birthday: new Date(facebookProfile.birthday)
   }
+}
+
+const getFriendsRecursively = (next, friends, cb) => {
+  axios.get(next)
+    .then((res) => {
+      res = res.data
+      friends = friends.concat(res.data)
+      if (res.paging && res.paging.next) {
+        getFriendsRecursively(res.paging.next, friends, cb)
+      } else {
+        cb(null, friends)
+      }
+    })
+    .catch((error) => cb(error, null))
 }
 
 module.exports = { getProfile, getFriends, updateUserProfile }
