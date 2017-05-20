@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const FB = require('fb')
 const Promise = require('bluebird')
 
@@ -8,7 +9,7 @@ const { signToken } = require('helpers/auth')
 const config = require('pitch-config')
 const { User } = require('pitch-database/models')
 
-const { getProfile, getFriends, updateUserProfile } = require('./fblogin.helpers')
+const { getProfile, getFriends, updateProfile } = require('./fblogin.helpers')
 
 function createUser (req, res, next) {
   return (data) => {
@@ -16,20 +17,15 @@ function createUser (req, res, next) {
     const friends = data[1]
 
     if (friends.totalCount <= config.app.minimumFriendsToSignup) {
-      const err = new APIError(
+      return next(new APIError(
         'Minimum number of friends not reached',
         httpStatus.FORBIDDEN
-      )
-      return next(err)
+      ))
     }
 
-    User.findOne({ 'provider.id': profile.id }).exec((err, user) => {
-      if (err) {
-        const err = new APIError(
-          'internal server error',
-          httpStatus.INTERNAL_SERVER_ERROR
-        )
-        return next(err)
+    User.findOne({ 'provider.id': profile.id }).exec((error, user) => {
+      if (error) {
+        return next(error)
       }
 
       if (user == null) {
@@ -45,8 +41,8 @@ function createUser (req, res, next) {
         }
       }
 
-      user.provider.friends = friends.data
-      user.profile = Object.assign(user.profile, updateUserProfile(profile))
+      user.provider.friends = _.map(friends.data, 'id')
+      user.profile = Object.assign(user.profile, updateProfile(profile))
 
       user.save()
         .then(savedUser => {
@@ -54,7 +50,7 @@ function createUser (req, res, next) {
           const { meta, profile } = savedUser.toObject()
           res.json({ user: { profile, meta }, token })
         })
-        .catch(e => next(e))
+        .catch(error => next(error))
     })
   }
 }

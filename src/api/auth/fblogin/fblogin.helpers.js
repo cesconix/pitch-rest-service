@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const axios = require('axios')
 const Promise = require('bluebird')
 const httpStatus = require('http-status')
@@ -12,19 +11,17 @@ const getProfile = (fb, fields) => {
       }
 
       if (profile.hasOwnProperty('email') === false) {
-        const error = new APIError(
+        return reject(new APIError(
           'The user does not grant the "user_email" permission',
           httpStatus.BAD_REQUEST
-        )
-        return reject(error)
+        ))
       }
 
       if (profile.hasOwnProperty('birthday') === false) {
-        const err = new APIError(
+        return reject(new APIError(
           'The user does not grant the "user_birthday" permission',
           httpStatus.BAD_REQUEST
-        )
-        return reject(err)
+        ))
       }
 
       return resolve(profile)
@@ -40,31 +37,26 @@ const getFriends = (fb) => {
       }
 
       if (res.hasOwnProperty('summary') === false) {
-        const error = new APIError(
+        return reject(new APIError(
           'The user does not grant the "user_friends" permission',
           httpStatus.BAD_REQUEST
-        )
-        return reject(error)
+        ))
       }
 
       const totalCount = res.summary.total_count
 
       if (res.paging && res.paging.next) {
         return getFriendsRecursively(res.paging.next, [], (error, data) => {
-          if (error) {
-            return reject(error)
-          }
-
-          return resolve({ data: _.map(data, 'id'), totalCount })
+          error ? reject(error) : resolve({ data, totalCount })
         })
       }
 
-      return resolve({ data: _.map(res.data, 'id'), totalCount })
+      return resolve({ data: res.data, totalCount })
     })
   })
 }
 
-const updateUserProfile = (facebookProfile) => {
+const updateProfile = (facebookProfile) => {
   return {
     firstName: facebookProfile.first_name,
     lastName: facebookProfile.last_name,
@@ -89,4 +81,4 @@ const getFriendsRecursively = (next, friends, cb) => {
     .catch((error) => cb(error, null))
 }
 
-module.exports = { getProfile, getFriends, updateUserProfile }
+module.exports = { getProfile, getFriends, updateProfile }
