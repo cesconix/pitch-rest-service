@@ -34,7 +34,7 @@ const getProfile = (fb, fields) => {
 
 const getFriends = (fb) => {
   return new Promise((resolve, reject) => {
-    fb.api('/me/friends?limit=1', (res) => {
+    fb.api('/me/friends', (res) => {
       if (res && res.error) {
         return reject(res.error)
       }
