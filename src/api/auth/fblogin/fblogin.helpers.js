@@ -10,14 +10,14 @@ const getProfile = (fb, fields) => {
         return reject(profile.error)
       }
 
-      if (profile.hasOwnProperty('email') === false) {
+      if (!profile.hasOwnProperty('email')) {
         return reject(new APIError(
           'The user does not grant the "user_email" permission',
           httpStatus.BAD_REQUEST
         ))
       }
 
-      if (profile.hasOwnProperty('birthday') === false) {
+      if (!profile.hasOwnProperty('birthday')) {
         return reject(new APIError(
           'The user does not grant the "user_birthday" permission',
           httpStatus.BAD_REQUEST
@@ -36,7 +36,7 @@ const getFriends = (fb) => {
         return reject(res.error)
       }
 
-      if (res.hasOwnProperty('summary') === false) {
+      if (!res.hasOwnProperty('summary')) {
         return reject(new APIError(
           'The user does not grant the "user_friends" permission',
           httpStatus.BAD_REQUEST
